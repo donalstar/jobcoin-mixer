@@ -1,2 +1,2 @@
-# jobcoin-mixer
-Jobcoin Mixer
+# jobcoin
+Jobcoin
