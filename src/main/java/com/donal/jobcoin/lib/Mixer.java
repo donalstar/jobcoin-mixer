@@ -1,4 +1,4 @@
-package com.donal.jobcoin;
+package com.donal.jobcoin.lib;
 
 import org.springframework.stereotype.Component;
 
