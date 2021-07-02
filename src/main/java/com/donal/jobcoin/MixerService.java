@@ -60,18 +60,24 @@ public class MixerService {
      *
      * @return
      */
-    private Map<String, Double> getMixProportions(String[] destinationAddresses, double numberToBeMixed) {
+    public Map<String, Double> getMixProportions(String[] destinationAddresses, double numberToBeMixed) {
         double balance = numberToBeMixed;
 
-        double fee = balance * Double.parseDouble(feesRate);
+        Double fee = null;
 
-        balance -= fee;
+        if (feesRate != null) {
+            fee = balance * Double.parseDouble(feesRate);
+
+            balance -= fee;
+        }
 
         double allocation = balance / destinationAddresses.length;
 
         Map<String, Double> coinAllocations = new HashMap<String, Double>();
 
-        coinAllocations.put(feesAddress, fee);
+        if (feesRate != null) {
+            coinAllocations.put(feesAddress, fee);
+        }
 
         for (String address : destinationAddresses) {
             coinAllocations.put(address, allocation);
@@ -84,13 +90,22 @@ public class MixerService {
         return coinAllocations;
     }
 
+    /**
+     *
+     * @param destinationAddresses
+     * @return
+     */
     public Map<String, String> getMixedCoins(String[] destinationAddresses) {
-        System.out.println("Get mixed coins");
 
-        // return set of destination addresses and amounts
-        // or: throw exception (?) if addresses have not yet been funded
+        Map<String, String> mixedCoins = new HashMap<String, String>();
 
-        return null;
+        for (String address : destinationAddresses) {
+              AddressInfo addressInfo = httpClient.getAddressInfo(address);
+
+            mixedCoins.put(address, addressInfo.getBalance());
+        }
+
+        return mixedCoins;
     }
 
     /**
@@ -131,5 +146,21 @@ public class MixerService {
         String balance = httpClient.getBalance(sourceAddress);
 
         return transferCoins(sourceAddress, targetAddress, balance);
+    }
+
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    public void setFeesAddress(String feesAddress) {
+        this.feesAddress = feesAddress;
+    }
+
+    public void setFeesRate(String feesRate) {
+        this.feesRate = feesRate;
     }
 }

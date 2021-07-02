@@ -8,7 +8,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * //	java -jar commandline-app-0.0.1-SNAPSHOT.jar --addresses=alpha,beta,gamma
@@ -47,11 +49,22 @@ public class MixerApplication implements ApplicationRunner {
         mixerService.mixCoins(sourceAddress, destinationAddresses);
 
         // get addresses after mixing
+        // (Maybe: need a polling loop here to re-try if the coin transfers are incomplete?
         Map<String, String> mixedCoins = mixerService.getMixedCoins(destinationAddresses);
 
-        System.out.println("Mixed coins/amounts " + mixedCoins);
+        log.info("Mixed coins/amounts: ");
+
+        for (String key : mixedCoins.keySet()) {
+            log.info("\tAddress: " + key + " balance: " + mixedCoins.get(key));
+        }
+
+        System.exit(0);
     }
 
+    /**
+     * @param args
+     * @return
+     */
     private String getSourceAddress(ApplicationArguments args) {
         String result = null;
 
@@ -65,6 +78,7 @@ public class MixerApplication implements ApplicationRunner {
     }
 
     /**
+     * @param args
      * @return
      */
     private String[] inputDepositAddresses(ApplicationArguments args) {
@@ -80,6 +94,11 @@ public class MixerApplication implements ApplicationRunner {
         return results;
     }
 
+    /**
+     * @param name
+     * @param args
+     * @return
+     */
     private List<String> getValues(String name, ApplicationArguments args) {
         List<String> values = null;
 

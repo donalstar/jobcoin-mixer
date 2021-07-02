@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -56,6 +54,12 @@ public class HttpClient {
         return balance;
     }
 
+    /**
+     *
+     * @param sourceAddress
+     * @param depositAddress
+     * @param amount
+     */
     public void transferToDepositAddress(String sourceAddress, String depositAddress, String amount) {
         log.info("Transfer from: " + sourceAddress + " to: " + depositAddress);
 
@@ -69,20 +73,6 @@ public class HttpClient {
 
         HttpEntity<SendTransaction> request = new HttpEntity<>(transaction);
 
-        try {
-            SendTransaction response =
-                    restTemplate.postForObject(transactionEndpoint, request, SendTransaction.class);
-
-        } catch (HttpClientErrorException | HttpServerErrorException httpClientOrServerExc) {
-            log.error("Exception " + httpClientOrServerExc);
-
-            //        if(HttpStatus.NOT_FOUND.equals(httpClientOrServerExc.getStatusCode())) {
-            //            // your handling of "NOT FOUND" here
-            //            // e.g. throw new RuntimeException("Your Error Message here", httpClientOrServerExc);
-            //        }
-            //        else {
-            //            // your handling of other errors here
-            //        }
-        }
+        restTemplate.postForObject(transactionEndpoint, request, SendTransaction.class);
     }
 }
