@@ -1,7 +1,5 @@
 package com.donal.jobcoin;
 
-import com.donal.jobcoin.lib.HttpClient;
-import com.donal.jobcoin.lib.Mixer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * //	java -jar commandline-app-0.0.1-SNAPSHOT.jar --addresses=alpha,beta,gamma
@@ -24,10 +19,7 @@ public class MixerApplication implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(MixerApplication.class);
 
     @Autowired
-    HttpClient httpClient;
-
-    @Autowired
-    Mixer mixer;
+    MixerService mixerService;
 
     public static void main(String[] args) {
         SpringApplication.run(MixerApplication.class, args);
@@ -36,6 +28,7 @@ public class MixerApplication implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
+        // Get input parameters
         String[] destinationAddresses = inputDepositAddresses(args);
 
         if (destinationAddresses == null) {
@@ -48,22 +41,27 @@ public class MixerApplication implements ApplicationRunner {
             System.exit(-1);
         }
 
-        UUID depositAddress = UUID.randomUUID();
+        String sourceAddress = getSourceAddress(args);
 
-        log.info("You may now send Jobcoins to address " + depositAddress +
-                        " and sent to your destination addresses "
-                + Arrays.toString(destinationAddresses));
+        // mix coins
+        mixerService.mixCoins(sourceAddress, destinationAddresses);
 
-        String response = null;
-        try {
-            response = httpClient.get();
-        } catch (Exception e) {
-            log.error("Fatal error", e);
+        // get addresses after mixing
+        Map<String, String> mixedCoins = mixerService.getMixedCoins(destinationAddresses);
+
+        System.out.println("Mixed coins/amounts " + mixedCoins);
+    }
+
+    private String getSourceAddress(ApplicationArguments args) {
+        String result = null;
+
+        List<String> values = getValues("source", args);
+
+        if (values != null) {
+            result = values.get(0);
         }
 
-        log.info("HTTP response = " + response);
-
-        mixer.mix(destinationAddresses);
+        return result;
     }
 
     /**
@@ -71,21 +69,26 @@ public class MixerApplication implements ApplicationRunner {
      */
     private String[] inputDepositAddresses(ApplicationArguments args) {
         String[] results = null;
+        List<String> values = getValues("addresses", args);
 
-        Set<String> names = args.getOptionNames();
+        if (values != null) {
+            String value = values.get(0);
 
-        if (names.contains("addresses")) {
-            List<String> addresses = args.getOptionValues("addresses");
-
-            System.out.println("Got addresses " + addresses);
-
-            if (addresses != null) {
-                results = new String[addresses.size()];
-                addresses.toArray(results); // fill the array
-            }
+            results = value.split(",");
         }
 
         return results;
     }
 
+    private List<String> getValues(String name, ApplicationArguments args) {
+        List<String> values = null;
+
+        Set<String> names = args.getOptionNames();
+
+        if (names.contains(name)) {
+            values = args.getOptionValues(name);
+        }
+
+        return values;
+    }
 }
